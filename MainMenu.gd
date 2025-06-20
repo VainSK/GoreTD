@@ -86,11 +86,17 @@ func toggle_mute():
 	update_mute_button_icon()
 
 func update_mute_button_icon():
-	if not mute_button:
-		return
-	if is_muted:
-		if ResourceLoader.exists("res://assets/MuteOn.png"):
-			mute_button.texture_normal = load("res://assets/MuteOn.png")
-	else:
-		if ResourceLoader.exists("res://assets/MuteOff.png"):
-			mute_button.texture_normal = load("res://assets/MuteOff.png")
+        if not mute_button:
+                return
+        if is_muted:
+                if ResourceLoader.exists("res://assets/MuteOn.png"):
+                        mute_button.texture_normal = load("res://assets/MuteOn.png")
+        else:
+                if ResourceLoader.exists("res://assets/MuteOff.png"):
+                        mute_button.texture_normal = load("res://assets/MuteOff.png")
+
+func _on_resized():
+        if settings_window:
+                var window_size = settings_window.size as Vector2
+                var viewport_size = get_viewport().get_visible_rect().size
+                settings_window.position = (viewport_size - window_size) / 2
