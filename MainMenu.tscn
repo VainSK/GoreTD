@@ -1,0 +1,203 @@
+[gd_scene load_steps=12 format=3 uid="uid://cya3qqb1txn2p"]
+
+[ext_resource type="Script" uid="uid://dk67eotlhx2wc" path="res://MainMenu.gd" id="1_i26rj"]
+[ext_resource type="Texture2D" uid="uid://dblplkefvkhrv" path="res://assets/MainMenuBackground.png" id="2_eiy7p"]
+[ext_resource type="Texture2D" uid="uid://cxa858w8bgg88" path="res://assets/GoreTDMenu.png" id="3_h7a2f"]
+[ext_resource type="Texture2D" uid="uid://c1lr7pvqaujfr" path="res://assets/Button.png" id="4_qoqlk"]
+[ext_resource type="Texture2D" uid="uid://cothd6o4f1tpn" path="res://assets/ButtonPress.png" id="5_7r1g0"]
+[ext_resource type="Texture2D" uid="uid://kl8vvbp1ditm" path="res://assets/ButtonHover.png" id="6_cqjrg"]
+[ext_resource type="AudioStream" uid="uid://b6qxq83a6ymqm" path="res://assets/MenuBGMusic.ogg" id="7_cqjrg"]
+[ext_resource type="FontFile" uid="uid://dsyxnfo57ruf0" path="res://assets/yoster.ttf" id="7_e2xy7"]
+[ext_resource type="AudioStream" uid="uid://c52gdklt0r1nq" path="res://assets/ButtonHover.wav" id="9_u7cqb"]
+[ext_resource type="AudioStream" uid="uid://bp4e72qi1prqr" path="res://assets/ButtonClick.wav" id="10_afec1"]
+[ext_resource type="Texture2D" uid="uid://d4fxte4necpro" path="res://assets/MuteOff.png" id="11_afec1"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -960.0
+offset_top = -540.0
+offset_right = 960.0
+offset_bottom = 540.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 4
+script = ExtResource("1_i26rj")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -963.5
+offset_top = -542.0
+offset_right = 963.5
+offset_bottom = 542.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_eiy7p")
+expand_mode = 3
+
+[node name="GoreTdMenu" type="Sprite2D" parent="."]
+position = Vector2(966, 304)
+scale = Vector2(0.481445, 0.481445)
+texture = ExtResource("3_h7a2f")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(200, 100)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -20.0
+offset_right = 100.0
+offset_bottom = 333.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="NewGame" type="TextureButton" parent="VBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("4_qoqlk")
+texture_pressed = ExtResource("5_7r1g0")
+texture_hover = ExtResource("6_cqjrg")
+
+[node name="Label" type="Label" parent="VBoxContainer/NewGame"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -42.5
+offset_top = -11.5
+offset_right = 42.5
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("7_e2xy7")
+theme_override_font_sizes/font_size = 28
+text = "NEW GAME"
+
+[node name="Settings" type="TextureButton" parent="VBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("4_qoqlk")
+texture_pressed = ExtResource("5_7r1g0")
+texture_hover = ExtResource("6_cqjrg")
+
+[node name="Label2" type="Label" parent="VBoxContainer/Settings"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -31.0
+offset_top = -11.5
+offset_right = 31.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("7_e2xy7")
+theme_override_font_sizes/font_size = 28
+text = "SETTINGS"
+
+[node name="Exit" type="TextureButton" parent="VBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("4_qoqlk")
+texture_pressed = ExtResource("5_7r1g0")
+texture_hover = ExtResource("6_cqjrg")
+
+[node name="Label3" type="Label" parent="VBoxContainer/Exit"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -14.5
+offset_top = -11.5
+offset_right = 14.5
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("7_e2xy7")
+theme_override_font_sizes/font_size = 28
+text = "EXIT"
+
+[node name="SettingsWindow" type="Window" parent="."]
+title = "Settings"
+initial_position = 1
+size = Vector2i(240, 200)
+visible = false
+unresizable = true
+popup_window = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SettingsWindow"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -57.5
+offset_top = -45.0
+offset_right = 57.5
+offset_bottom = 45.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MusicVolumeSlider" type="Label" parent="SettingsWindow/VBoxContainer"]
+layout_mode = 2
+text = "Music Volume"
+
+[node name="MusicVolume" type="HSlider" parent="SettingsWindow/VBoxContainer"]
+layout_mode = 2
+value = 100.0
+
+[node name="EffectsVolumeSlider" type="Label" parent="SettingsWindow/VBoxContainer"]
+layout_mode = 2
+text = "Effects Volume"
+
+[node name="EffectsVolume" type="HSlider" parent="SettingsWindow/VBoxContainer"]
+layout_mode = 2
+value = 100.0
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_cqjrg")
+volume_db = -10.0
+autoplay = true
+
+[node name="ButtonHover" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("9_u7cqb")
+volume_db = -10.0
+
+[node name="ButtonClick" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("10_afec1")
+volume_db = -10.0
+
+[node name="MuteButton" type="TextureButton" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -20.0
+offset_top = -20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+texture_normal = ExtResource("11_afec1")
+
+[connection signal="resized" from="." to="." method="_on_resized"]
+[connection signal="close_requested" from="SettingsWindow" to="." method="_on_settings_window_close_requested"]
