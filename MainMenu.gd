@@ -4,8 +4,9 @@ extends Control
 @onready var settings_button = $VBoxContainer/Settings
 @onready var exit_button = $VBoxContainer/Exit
 @onready var settings_window = $SettingsWindow
-@onready var music_slider = $SettingsWindow/VBoxContainer/MusicVolumeSlider
-@onready var effects_slider = $SettingsWindow/VBoxContainer/EffectsVolumeSlider
+@onready var music_slider = $SettingsWindow/VBoxContainer/MusicVolume
+@onready var effects_slider = $SettingsWindow/VBoxContainer/EffectsVolume
+@onready var menu_slider = $SettingsWindow/VBoxContainer/MenuVolume
 @onready var hover_sound = $ButtonHover
 @onready var click_sound = $ButtonClick
 @onready var mute_button = $MuteButton
@@ -31,7 +32,18 @@ func _ready():
 	# Sound for menu buttons
 	setup_button_sounds()
 	
-	# Center the settings window (this is harmless)
+	# Connect volume sliders
+	if music_slider:
+		music_slider.value_changed.connect(_on_music_slider_changed)
+	if effects_slider:
+		effects_slider.value_changed.connect(_on_effects_slider_changed)
+	if menu_slider:
+		menu_slider.value_changed.connect(_on_menu_slider_changed)
+	
+	load_settings()
+	_init_sliders()
+	
+	# Center the settings window
 	await get_tree().process_frame
 	if settings_window:
 		var window_size = settings_window.size as Vector2
@@ -54,6 +66,7 @@ func play_hover_sound():
 	if not is_muted and hover_sound and hover_sound.stream:
 		hover_sound.stop()
 		hover_sound.play()
+
 
 func _on_new_game_pressed():
 	play_click_sound()
@@ -86,17 +99,74 @@ func toggle_mute():
 	update_mute_button_icon()
 
 func update_mute_button_icon():
-        if not mute_button:
-                return
-        if is_muted:
-                if ResourceLoader.exists("res://assets/MuteOn.png"):
-                        mute_button.texture_normal = load("res://assets/MuteOn.png")
-        else:
-                if ResourceLoader.exists("res://assets/MuteOff.png"):
-                        mute_button.texture_normal = load("res://assets/MuteOff.png")
+	if not mute_button:
+		return
+	if is_muted:
+		if ResourceLoader.exists("res://assets/MuteOn.png"):
+			mute_button.texture_normal = load("res://assets/MuteOn.png")
+	else:
+		if ResourceLoader.exists("res://assets/MuteOff.png"):
+			mute_button.texture_normal = load("res://assets/MuteOff.png")
 
 func _on_resized():
-        if settings_window:
-                var window_size = settings_window.size as Vector2
-                var viewport_size = get_viewport().get_visible_rect().size
-                settings_window.position = (viewport_size - window_size) / 2
+	if settings_window:
+		var window_size = settings_window.size as Vector2
+		var viewport_size = get_viewport().get_visible_rect().size
+		settings_window.position = (viewport_size - window_size) / 2
+
+# --- VOLUME SLIDER FUNCTIONALITY BELOW ---
+
+func _on_music_slider_changed(value):
+	var bus_index = AudioServer.get_bus_index("Music")
+	AudioServer.set_bus_volume_db(bus_index, linear_to_db(value))
+	save_settings()
+
+func _on_effects_slider_changed(value):
+	var bus_index = AudioServer.get_bus_index("SFX")
+	AudioServer.set_bus_volume_db(bus_index, linear_to_db(value))
+	save_settings()
+
+func _on_menu_slider_changed(value):
+	var bus_index = AudioServer.get_bus_index("Menu")
+	AudioServer.set_bus_volume_db(bus_index, linear_to_db(value))
+	save_settings()
+
+# Logarithmic mapping for natural volume feel
+func linear_to_db(value):
+	if value <= 0.001:
+		return -80.0
+	return 40.0 * log(value) / log(10)  # -80dB at 0.01, 0dB at 1, much smoother
+
+
+func db_to_linear(db):
+	if db <= -80.0:
+		return 0.0
+	return pow(10, db / 20.0)
+
+func _init_sliders():
+	if music_slider:
+		var db = AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Music"))
+		music_slider.value = db_to_linear(db)
+	if effects_slider:
+		var db = AudioServer.get_bus_volume_db(AudioServer.get_bus_index("SFX"))
+		effects_slider.value = db_to_linear(db)
+	if menu_slider:
+		var db = AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Menu"))
+		menu_slider.value = db_to_linear(db)
+
+func save_settings():
+	var config = ConfigFile.new()
+	config.set_value("audio", "music_volume", music_slider.value)
+	config.set_value("audio", "effects_volume", effects_slider.value)
+	config.set_value("audio", "menu_volume", menu_slider.value)
+	config.save("user://settings.cfg")
+
+func load_settings():
+	var config = ConfigFile.new()
+	if config.load("user://settings.cfg") == OK:
+		if music_slider:
+			music_slider.value = config.get_value("audio", "music_volume", 1.0)
+		if effects_slider:
+			effects_slider.value = config.get_value("audio", "effects_volume", 1.0)
+		if menu_slider:
+			menu_slider.value = config.get_value("audio", "menu_volume", 1.0)
