@@ -15,6 +15,9 @@ var is_muted = false
 var stored_master_volume = 0.0
 
 func _ready():
+	# Load settings first, before connecting signals
+	load_settings()
+	
 	# Button actions
 	if new_game_button:
 		new_game_button.pressed.connect(_on_new_game_pressed)
@@ -32,7 +35,7 @@ func _ready():
 	# Sound for menu buttons
 	setup_button_sounds()
 	
-	# Connect volume sliders
+	# Connect volume sliders AFTER loading settings
 	if music_slider:
 		music_slider.value_changed.connect(_on_music_slider_changed)
 	if effects_slider:
@@ -40,8 +43,11 @@ func _ready():
 	if menu_slider:
 		menu_slider.value_changed.connect(_on_menu_slider_changed)
 	
-	load_settings()
+	# Initialize sliders with loaded values
 	_init_sliders()
+	
+	# Apply loaded audio settings to the audio buses
+	apply_audio_settings()
 	
 	# Center the settings window
 	await get_tree().process_frame
@@ -66,7 +72,6 @@ func play_hover_sound():
 	if not is_muted and hover_sound and hover_sound.stream:
 		hover_sound.stop()
 		hover_sound.play()
-
 
 func _on_new_game_pressed():
 	play_click_sound()
@@ -97,6 +102,7 @@ func toggle_mute():
 	else:
 		AudioServer.set_bus_volume_db(master_bus_index, stored_master_volume)
 	update_mute_button_icon()
+	save_settings()  # Save mute state
 
 func update_mute_button_icon():
 	if not mute_button:
@@ -114,59 +120,118 @@ func _on_resized():
 		var viewport_size = get_viewport().get_visible_rect().size
 		settings_window.position = (viewport_size - window_size) / 2
 
-# --- VOLUME SLIDER FUNCTIONALITY BELOW ---
+# --- VOLUME SLIDER FUNCTIONALITY ---
 
 func _on_music_slider_changed(value):
 	var bus_index = AudioServer.get_bus_index("Music")
-	AudioServer.set_bus_volume_db(bus_index, linear_to_db(value))
+	if bus_index != -1:
+		AudioServer.set_bus_volume_db(bus_index, linear_to_db(value))
 	save_settings()
 
 func _on_effects_slider_changed(value):
 	var bus_index = AudioServer.get_bus_index("SFX")
-	AudioServer.set_bus_volume_db(bus_index, linear_to_db(value))
+	if bus_index != -1:
+		AudioServer.set_bus_volume_db(bus_index, linear_to_db(value))
 	save_settings()
 
 func _on_menu_slider_changed(value):
 	var bus_index = AudioServer.get_bus_index("Menu")
-	AudioServer.set_bus_volume_db(bus_index, linear_to_db(value))
+	if bus_index != -1:
+		AudioServer.set_bus_volume_db(bus_index, linear_to_db(value))
 	save_settings()
 
 # Logarithmic mapping for natural volume feel
 func linear_to_db(value):
 	if value <= 0.001:
 		return -80.0
-	return 40.0 * log(value) / log(10)  # -80dB at 0.01, 0dB at 1, much smoother
-
+	return 20.0 * log(value) / log(10)  # More standard dB conversion
 
 func db_to_linear(db):
 	if db <= -80.0:
-		return 0.0
+		return 0.001  # Very small but not zero
 	return pow(10, db / 20.0)
 
 func _init_sliders():
+	# Don't trigger value_changed signals during initialization
 	if music_slider:
 		var db = AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Music"))
-		music_slider.value = db_to_linear(db)
+		music_slider.set_value_no_signal(db_to_linear(db))
 	if effects_slider:
 		var db = AudioServer.get_bus_volume_db(AudioServer.get_bus_index("SFX"))
-		effects_slider.value = db_to_linear(db)
+		effects_slider.set_value_no_signal(db_to_linear(db))
 	if menu_slider:
 		var db = AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Menu"))
-		menu_slider.value = db_to_linear(db)
+		menu_slider.set_value_no_signal(db_to_linear(db))
+
+func apply_audio_settings():
+	# Apply the loaded settings to the audio buses
+	if music_slider:
+		var bus_index = AudioServer.get_bus_index("Music")
+		if bus_index != -1:
+			AudioServer.set_bus_volume_db(bus_index, linear_to_db(music_slider.value))
+	if effects_slider:
+		var bus_index = AudioServer.get_bus_index("SFX")
+		if bus_index != -1:
+			AudioServer.set_bus_volume_db(bus_index, linear_to_db(effects_slider.value))
+	if menu_slider:
+		var bus_index = AudioServer.get_bus_index("Menu")
+		if bus_index != -1:
+			AudioServer.set_bus_volume_db(bus_index, linear_to_db(menu_slider.value))
 
 func save_settings():
 	var config = ConfigFile.new()
-	config.set_value("audio", "music_volume", music_slider.value)
-	config.set_value("audio", "effects_volume", effects_slider.value)
-	config.set_value("audio", "menu_volume", menu_slider.value)
-	config.save("user://settings.cfg")
+	
+	# Audio settings
+	if music_slider:
+		config.set_value("audio", "music_volume", music_slider.value)
+	if effects_slider:
+		config.set_value("audio", "effects_volume", effects_slider.value)
+	if menu_slider:
+		config.set_value("audio", "menu_volume", menu_slider.value)
+	
+	# Mute state
+	config.set_value("audio", "is_muted", is_muted)
+	config.set_value("audio", "stored_master_volume", stored_master_volume)
+	
+	# Save the file
+	var error = config.save("user://settings.cfg")
+	if error != OK:
+		print("Error saving settings: ", error)
+	else:
+		print("Settings saved successfully")
 
 func load_settings():
 	var config = ConfigFile.new()
-	if config.load("user://settings.cfg") == OK:
+	var error = config.load("user://settings.cfg")
+	
+	if error != OK:
+		print("Could not load settings file, using defaults")
+		# Set default values
 		if music_slider:
-			music_slider.value = config.get_value("audio", "music_volume", 1.0)
+			music_slider.value = 1.0
 		if effects_slider:
-			effects_slider.value = config.get_value("audio", "effects_volume", 1.0)
+			effects_slider.value = 1.0
 		if menu_slider:
-			menu_slider.value = config.get_value("audio", "menu_volume", 1.0)
+			menu_slider.value = 1.0
+		is_muted = false
+		stored_master_volume = 0.0
+		return
+	
+	# Load audio settings
+	if music_slider:
+		music_slider.value = config.get_value("audio", "music_volume", 1.0)
+	if effects_slider:
+		effects_slider.value = config.get_value("audio", "effects_volume", 1.0)
+	if menu_slider:
+		menu_slider.value = config.get_value("audio", "menu_volume", 1.0)
+	
+	# Load mute state
+	is_muted = config.get_value("audio", "is_muted", false)
+	stored_master_volume = config.get_value("audio", "stored_master_volume", 0.0)
+	
+	# Apply mute state if needed
+	if is_muted:
+		var master_bus_index = AudioServer.get_bus_index("Master")
+		AudioServer.set_bus_volume_db(master_bus_index, -80.0)
+	
+	print("Settings loaded successfully")

@@ -1,0 +1,25 @@
+[gd_scene load_steps=2 format=3 uid="uid://dl8mejbfqrjrg"]
+
+[ext_resource type="Script" uid="uid://176r1wmuxv55" path="res://scrollable_grid.gd" id="1_wbfu4"]
+
+[node name="ScrollableGrid" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_wbfu4")
+
+[node name="Grid" type="GridContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="RowArrows" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ColumnArrows" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
